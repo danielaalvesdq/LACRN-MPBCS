@@ -1,0 +1,15 @@
+This folder contains the R Markdown scripts and dataset used for the analysis of breast cancer in Latin American women. 
+The study includes statistical modeling, survival analysis, and extended figures to support our findings.  
+
+## Files  
+- **Table_1.Rmd** – Creates Table 1 with descriptive statistics.  
+- **Table_2_multinom_IA_EUR.Rmd** – Multinomial regression analysis script.  
+- **Table_3_coxmodels_IA_EUR.Rmd** – Cox proportional hazards models for survival analysis.
+- **Figure_2.Rmd** – Script to generate Figure 2 of the study.  
+- **Suppl_Figures.Rmd** – Produces supplementary figures.  
+- **Extended_Figures.Rmd** – Generates additional visualizations and statistical figures. 
+- **dataset_LACRN.xlsx** – Dataset containing the study variables.  
+
+## Requirements  
+To run these scripts, you need: R (≥ 4.0.0). Each script specifies the required R libraries at the beginning. 
+Please check the script you want to run and install the necessary packages using: install.packages(c("name_of_package"))
