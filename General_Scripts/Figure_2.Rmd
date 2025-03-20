@@ -1,0 +1,103 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+```{r}
+library(readxl)
+library(FSA)
+library(ggplot2)
+library(ggsignif)
+library(ggbeeswarm)
+library(gridExtra)
+```
+
+```{r}
+df <- read_excel("dataset_LACRN.xlsx") #set path
+```
+
+---------------------------
+FIGURE 2 
+---------------------------
+PAM50
+```{r}
+table(df$PAM50)
+df_pam <- data.frame(subset(df, PAM50 != "Normal"))
+EUR.ances <- df_pam$EUR.ances
+IA.ances <- df_pam$IA.ances
+EAS.ances <- df_pam$EAS.ances
+AFR.ances <- df_pam$AFR.ances
+
+PAM50 <- df_pam$PAM50
+
+# Compute the analysis of variance
+res.aov <- aov(IA.ances ~ PAM50, data = df_pam) #replace for each ancestry to check the assumption (IA.ances, EUR.ances, AFR.ances, EAS.ances)
+# Extract the residuals
+aov_residuals <- residuals(object = res.aov)
+# Run Shapiro-Wilk test
+shapiro.test(x = aov_residuals)#non-normal distribution
+
+#Non-parametric alternative to one-way ANOVA test
+kruskal.test(EUR.ances ~ PAM50) #0.020
+dunnTest(EUR.ances ~ PAM50, method = "bh") #Dunn test for pairwaise comparisons
+
+kruskal.test(IA.ances ~ PAM50) #0.042
+dunnTest(IA.ances ~ PAM50, method = "bh") #Dunn test for pairwaise comparisons
+
+kruskal.test(EAS.ances ~ PAM50) #0.056
+dunnTest(EAS.ances ~ PAM50, method = "bh") #Dunn test for pairwaise comparisons
+
+kruskal.test(AFR.ances ~ PAM50) #0.69
+dunnTest(AFR.ances ~ PAM50, method = "bh") #Dunn test for pairwaise comparisons
+```
+
+```{r}
+df_pam$PAM50 <- ifelse(df_pam$PAM50 == "Her2", "Her2E",
+                                        ifelse(df_pam$PAM50 == "LumA", "LumA",
+                                               ifelse(df_pam$PAM50 == "LumB", "LumB",
+                                                      ifelse(df_pam$PAM50 == "Basal", "Basal", NA))))
+level_order <- factor(df_pam$PAM50, level = c("LumA", "LumB", "Her2E", "Basal"))
+
+#In each plot is added as labels the p-values obtained in the previous chunk for each ancestry
+#EUROPEAN
+plot1 <- ggplot(df_pam, aes(x=level_order, y=EUR.ances, fill = level_order)) + 
+   geom_quasirandom(width = 0.4, aes(color = PAM50))+
+ scale_fill_manual(values=c("#DE2D26","#FA9FB5","#1F78B4", "#94BCD2"))+
+  scale_color_manual(values=c("#DE2D26","#FA9FB5","#1F78B4", "#94BCD2"))+
+  geom_boxplot(fill="white", alpha = 0) +
+  geom_signif(comparisons=list(c("LumA", "Her2E")), annotations="*",
+              y_position = 1, tip_length = 0, vjust=0.4) +
+  theme(legend.position="none", panel.background = element_blank())+labs(x="PAM50 Subtypes", y = "EUR Ancestry")+
+  theme_classic() + theme(legend.position = "none", axis.text.x = element_text(size = 10, color = "black"), axis.text.y = element_text(size = 10, color = "black")) + annotate("text",x=2, y=1.2, label="Kruskal-Wallis p-value = 0.020", size = 3.5, fontface="italic")
+#INDIGENOUS AMERICAN
+plot2 <- ggplot(df_pam, aes(x=level_order, y=IA.ances, fill = level_order)) + 
+   geom_quasirandom(width = 0.4, aes(color = PAM50))+
+ scale_fill_manual(values=c("#DE2D26","#FA9FB5","#1F78B4", "#94BCD2"))+
+  scale_color_manual(values=c("#DE2D26","#FA9FB5","#1F78B4", "#94BCD2"))+
+  geom_boxplot(fill="white", alpha = 0) +
+  theme(legend.position="none", panel.background = element_blank())+labs(x="PAM50 Subtypes", y = "IA Ancestry")+
+  theme_classic() + theme(legend.position = "none", axis.text.x = element_text(size = 10, color = "black"), axis.text.y = element_text(size = 10, color = "black")) + annotate("text",x=2, y=0.8, label="Kruskal-Wallis p-value = 0.042", size = 3.5, fontface="italic")
+#AFRICAN 
+plot3 <- ggplot(df_pam, aes(x=level_order, y=AFR.ances, fill = level_order)) + 
+   geom_quasirandom(width = 0.4, aes(color = PAM50))+
+ scale_fill_manual(values=c("#DE2D26","#FA9FB5","#1F78B4", "#94BCD2"))+
+  scale_color_manual(values=c("#DE2D26","#FA9FB5","#1F78B4", "#94BCD2"))+
+  geom_boxplot(fill="white", alpha = 0) +
+  theme(legend.position="none", panel.background = element_blank())+labs(x="PAM50 Subtypes", y = "AFR Ancestry")+
+  theme_classic() + theme(legend.position = "none", axis.text.x = element_text(size = 10, color = "black"), axis.text.y = element_text(size = 10, color = "black")) + annotate("text",x=2, y=1, label="Kruskal-Wallis p-value = 0.69", size = 3.5, fontface="italic")
+#EAST ASIAN
+plot4 <- ggplot(df_pam, aes(x=level_order, y=EAS.ances, fill = level_order)) + 
+   geom_quasirandom(width = 0.4, aes(color = PAM50))+
+ scale_fill_manual(values=c("#DE2D26","#FA9FB5","#1F78B4", "#94BCD2"))+
+  scale_color_manual(values=c("#DE2D26","#FA9FB5","#1F78B4", "#94BCD2"))+
+  geom_boxplot(fill="white", alpha = 0) +
+  theme(legend.position="none", panel.background = element_blank())+labs(x="PAM50 Subtypes", y = "EAS Ancestry")+
+  theme_classic() + theme(legend.position = "none", axis.text.x = element_text(size = 10, color = "black"), axis.text.y = element_text(size = 10, color = "black")) + annotate("text",x=2, y=1.1, label="Kruskal-Wallis p-value = 0.056", size = 3.5, fontface="italic")
+
+# Combine the plots with gridExtra to save them
+tiff("ancestry_PAM50.tiff", units="in", width=7, height=7, res=2500)
+grid.arrange(plot1, plot2, plot3, plot4) 
+# insert ggplot code
+dev.off()
+```
+

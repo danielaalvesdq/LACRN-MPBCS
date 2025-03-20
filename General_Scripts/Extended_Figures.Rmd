@@ -1,0 +1,329 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+```{r}
+library(readxl)
+library(ggpubr)
+library(gridExtra)
+library(rstatix)
+```
+
+```{r}
+df <- read_excel("dataset_LACRN.xlsx") #set path
+```
+
+---------------------------
+EXTENDED FIGURE 1
+---------------------------
+Age vs EUR ancestry
+```{r}
+corr <- ggscatter(df, x = "Age", y = "EUR.ances",
+          add = "reg.line", conf.int = TRUE,    
+          add.params = list(fill = "lightgray"),
+          ggtheme = theme_minimal()
+          )+
+  stat_cor(method = "spearman",
+           label.x = 60, label.y = 0.05) 
+```
+
+BMI vs EUR ancestry
+```{r}
+corr2 <- ggscatter(df, x = "BMI", y = "EUR.ances",
+          add = "reg.line", conf.int = TRUE,    
+          add.params = list(fill = "lightgray"),
+          ggtheme = theme_minimal()
+          )+
+  stat_cor(method = "spearman",
+           label.x = 35, label.y = 0.05)
+```
+
+Education years vs EUR ancestry
+```{r}
+edu <- df[!is.na(df$EducationYears),]
+educ <- ggplot(edu, aes(x=edu$EducationYears, y=EUR.ances, fill = edu$EducationYears)) + 
+   geom_quasirandom(width = 0.4, aes(color = EducationYears))+
+ scale_fill_manual(values=c("navyblue","red3"))+
+  scale_color_manual(values=c("navyblue","red3"))+
+  geom_boxplot(fill="white", alpha = 0) +
+  theme(legend.position="none", panel.background = element_blank())+labs(x="Education Years", y = "EUR Ancestry")+
+  theme_classic() + theme(legend.position = "none", axis.text.x = element_text(size = 10, color = "black"), axis.text.y = element_text(size = 10, color = "black")) + annotate("text",x=1.5, y=1.1, label="Wilcoxon p-value = 0.984", size = 3.5, fontface="italic")
+```
+
+Histological Grade vs EUR ances
+```{r}
+hist <- df[!is.na(df$Hist_Grade),]
+hist$Hist_Grade <- factor(hist$Hist_Grade, levels = c("Low", "Intermediate","High"))
+histg <- ggplot(hist, aes(x=hist$Hist_Grade, y=EUR.ances, fill = hist$Hist_Grade)) + 
+   geom_quasirandom(width = 0.4, aes(color = Hist_Grade))+
+ scale_fill_manual(values=c("navyblue","darkgreen","red3"))+
+  scale_color_manual(values=c("navyblue","darkgreen","red3"))+
+  geom_boxplot(fill="white", alpha = 0) +
+  theme(legend.position="none", panel.background = element_blank())+labs(x="Histological grade", y = "EUR Ancestry")+
+  theme_classic() + theme(legend.position = "none", axis.text.x = element_text(size = 10, color = "black"), axis.text.y = element_text(size = 10, color = "black")) + annotate("text",x=1.5, y=1.1, label="Wilcoxon p-value = 0.344", size = 3.5, fontface="italic")
+```
+
+Stage vs EUR ances
+```{r}
+stage <- df[!is.na(df$Stage),]
+stage$Stage <- factor(stage$Stage, levels = c("Early","Locally Advanced"))
+stag <- ggplot(stage, aes(x=stage$Stage, y=EUR.ances, fill = stage$Stage)) + 
+   geom_quasirandom(width = 0.4, aes(color = Stage))+
+ scale_fill_manual(values=c("navyblue","red3"))+
+  scale_color_manual(values=c("navyblue","red3"))+
+  geom_boxplot(fill="white", alpha = 0) +
+  theme(legend.position="none", panel.background = element_blank())+labs(x="Stage", y = "EUR Ancestry")+
+  theme_classic() + theme(legend.position = "none", axis.text.x = element_text(size = 10, color = "black"), axis.text.y = element_text(size = 10, color = "black")) + annotate("text",x=1.5, y=1.1, label="Wilcoxon p-value < 0.001", size = 3.5, fontface="italic")
+```
+
+cN vs EUR ances
+```{r}
+cn <- df[!is.na(df$cN),]
+cn$cN <- factor(cn$cN, levels = c("Negative","Positive"))
+node <- ggplot(cn, aes(x=cn$cN, y=EUR.ances, fill = cn$cN)) + 
+   geom_quasirandom(width = 0.4, aes(color = cN))+
+ scale_fill_manual(values=c("navyblue","red3"))+
+  scale_color_manual(values=c("navyblue","red3"))+
+  geom_boxplot(fill="white", alpha = 0) +
+  theme(legend.position="none", panel.background = element_blank())+labs(x="cN", y = "EUR Ancestry")+
+  theme_classic() + theme(legend.position = "none", axis.text.x = element_text(size = 10, color = "black"), axis.text.y = element_text(size = 10, color = "black")) + annotate("text",x=1.5, y=1.1, label="Wilcoxon p-value < 0.001", size = 3.5, fontface="italic")
+```
+
+cT vs EUR ances
+```{r}
+ct <- df[!is.na(df$cT),]
+ct$cT <- factor(ct$cT, levels = c("T1","T2","T3","T4"))
+tumor <- ggplot(ct, aes(x=ct$cT, y=EUR.ances, fill = ct$cT)) + 
+   geom_quasirandom(width = 0.4, aes(color = cT))+
+ scale_fill_manual(values=c("#e7298a","#d95f02","#66a61e","#7570b3"))+
+  scale_color_manual(values=c("#e7298a","#d95f02","#66a61e","#7570b3"))+
+  geom_boxplot(fill="white", alpha = 0) +
+  theme(legend.position="none", panel.background = element_blank())+labs(x="cN", y = "EUR Ancestry")+
+  theme_classic() + theme(legend.position = "none", axis.text.x = element_text(size = 10, color = "black"), axis.text.y = element_text(size = 10, color = "black")) + annotate("text",x=1.5, y=1.1, label="Wilcoxon p-value = 0.053", size = 3.5, fontface="italic")
+```
+
+```{r}
+# Combine the plots with gridExtra to save them
+tiff("extended_fig1.tiff", units="in", width=15, height=10, res=1200)
+grid.arrange(corr, corr2, educ, histg, stag, node, tumor, nrow = 2) 
+# insert ggplot code
+dev.off()
+```
+
+---------------------------
+EXTENDED FIGURE 2
+---------------------------
+BMI per country
+BMI vs EUR ances
+```{r}
+corr1 <- ggscatter(arg, x = "BMI", y = "EUR.ances",
+          add = "reg.line", conf.int = TRUE, title = "Argentina",    
+          add.params = list(fill = "lightgray"),
+          ggtheme = theme_minimal()
+          )+
+  stat_cor(method = "spearman", 
+           label.x = 25, label.y = 0.05)
+
+corr2 <- ggscatter(bra, x = "BMI", y = "EUR.ances",
+          add = "reg.line", conf.int = TRUE,  title = "Brazil",    
+          add.params = list(fill = "lightgray"),
+          ggtheme = theme_minimal()
+          )+
+  stat_cor(method = "spearman", 
+           label.x = 20, label.y = 0.05)
+
+corr3 <- ggscatter(ch, x = "BMI", y = "EUR.ances",
+          add = "reg.line", conf.int = TRUE,    title = "Chile",  
+          add.params = list(fill = "lightgray"),
+          ggtheme = theme_minimal()
+          )+
+  stat_cor(method = "spearman", 
+           label.x = 20, label.y = 0.05)
+
+corr4 <- ggscatter(mex, x = "BMI", y = "EUR.ances",
+          add = "reg.line", conf.int = TRUE,    title = "Mexico",  
+          add.params = list(fill = "lightgray"),
+          ggtheme = theme_minimal()
+          )+
+  stat_cor(method = "spearman", 
+           label.x = 20, label.y = 0.05)
+
+corr5 <- ggscatter(uru, x = "BMI", y = "EUR.ances",
+          add = "reg.line", conf.int = TRUE,    title = "Uruguay",  
+          add.params = list(fill = "lightgray"),
+          ggtheme = theme_minimal()
+          )+
+  stat_cor(method = "spearman", 
+           label.x = 20, label.y = 0.05)
+```
+
+```{r}
+# Combine the plots with gridExtra to save them
+tiff("Country_BMI_corr_EUR.tiff", units="in", width=15, height=10, res=1200)
+grid.arrange(corr1, corr2, corr3, corr4, corr5, nrow = 2) 
+# insert ggplot code
+dev.off()
+```
+
+Age per country
+Age vs EUR ances
+```{r}
+corr1 <- ggscatter(arg, x = "Age", y = "EUR.ances",
+          add = "reg.line", conf.int = TRUE, title = "Argentina",    
+          add.params = list(fill = "lightgray"),
+          ggtheme = theme_minimal()
+          )+
+  stat_cor(method = "spearman", 
+           label.x = 40, label.y = 0.05)
+
+corr2 <- ggscatter(bra, x = "Age", y = "EUR.ances",
+          add = "reg.line", conf.int = TRUE,  title = "Brazil",    
+          add.params = list(fill = "lightgray"),
+          ggtheme = theme_minimal()
+          )+
+  stat_cor(method = "spearman", 
+           label.x = 30, label.y = 0.05)
+
+corr3 <- ggscatter(ch, x = "Age", y = "EUR.ances",
+          add = "reg.line", conf.int = TRUE,    title = "Chile",  
+          add.params = list(fill = "lightgray"),
+          ggtheme = theme_minimal()
+          )+
+  stat_cor(method = "spearman", 
+           label.x = 30, label.y = 0.05)
+
+corr4 <- ggscatter(mex, x = "Age", y = "EUR.ances",
+          add = "reg.line", conf.int = TRUE,    title = "Mexico",  
+          add.params = list(fill = "lightgray"),
+          ggtheme = theme_minimal()
+          )+
+  stat_cor(method = "spearman", 
+           label.x = 30, label.y = 0.05)
+
+corr5 <- ggscatter(uru, x = "Age", y = "EUR.ances",
+          add = "reg.line", conf.int = TRUE,    title = "Uruguay",  
+          add.params = list(fill = "lightgray"),
+          ggtheme = theme_minimal()
+          )+
+  stat_cor(method = "spearman", 
+           label.x = 40, label.y = 0.05)
+```
+
+```{r}
+# Combine the plots with gridExtra
+tiff("Country_AGE_corr_EUR.tiff", units="in", width=15, height=5, res=1200)
+grid.arrange(corr1, corr2, corr3, corr4, corr5, nrow = 1) 
+# insert ggplot code
+dev.off()
+```
+
+Education years per country
+```{r}
+df$Country <- factor(df$Country, levels = c("Argentina","Brazil","Chile","Mexico","Uruguay")) #alphabetical order 
+```
+
+```{r}
+edu <- df[!is.na(df$EducationYears),]
+
+p <- ggboxplot(edu, x = "Country", y = "EUR.ances", ylim = c(0,1.05),
+          color = "EducationYears", palette = c("navyblue","red3"),
+          add = "jitter")
+ed <- p + stat_compare_means(aes(group = EducationYears), method = "wilcox.test", label = "p.format", label.y = 1.05)
+```
+
+```{r}
+# Combine the plots with gridExtra
+tiff("Country_EDUYEARS_wilcox_EUR.tiff", units="in", width=15, height=5, res=1200)
+ed# insert ggplot code
+dev.off()
+```
+
+Histological Grade vs EUR ances
+```{r}
+hist <- df[!is.na(df$Hist_Grade),]
+hist$Hist_Grade <- factor(hist$Hist_Grade, levels = c("Low", "Intermediate", "High"))
+p <- ggboxplot(hist, x = "Country", y = "EUR.ances", ylim = c(0,1.05),
+          color = "Hist_Grade", palette = c("navyblue","darkgreen","red3"),
+          add = "jitter")
+hg <- p + stat_compare_means(aes(group = Hist_Grade), method = "kruskal.test", label = "p.format",   label.y = 1.05)
+```
+
+```{r}
+# Combine the plots with gridExtra
+tiff("Country_HISTGRADE_kruskal_EUR.tiff", units="in", width=15, height=5, res=1200)
+hg# insert ggplot code
+dev.off()
+```
+
+Stage vs EUR ances
+```{r}
+stage <- df[!is.na(df$Stage),]
+stage$Stage <- factor(stage$Stage, levels = c("Early","Locally Advanced"))
+p <- ggboxplot(stage, x = "Country", y = "EUR.ances", ylim = c(0,1.05),
+          color = "Stage", palette = c("navyblue","red3"),
+          add = "jitter")
+st <- p + stat_compare_means(aes(group = Stage), method = "wilcox.test", label = "p.format",   label.y = 1.05)
+```
+
+```{r}
+# Combine the plots with gridExtra
+tiff("Country_STAGE_wilcox_EUR.tiff", units="in", width=15, height=5, res=1200)
+st# insert ggplot code
+dev.off()
+```
+
+cN vs EUR ances
+```{r}
+cn <- df[!is.na(df$cN),]
+cn$cN <- factor(cn$cN, levels = c("Negative","Positive"))
+p <- ggboxplot(cn, x = "Country", y = "EUR.ances", ylim = c(0,1.05),
+          color = "cN", palette = c("navyblue","red3"),
+          add = "jitter")
+cn <- p + stat_compare_means(aes(group = cN), method = "wilcox.test", label = "p.format",   label.y = 1.05)
+```
+
+```{r}
+# Combine the plots with gridExtra
+tiff("Country_cNODES_wilcox_EUR.tiff", units="in", width=15, height=5, res=1200)
+cn# insert ggplot code
+dev.off()
+```
+
+cT vs EUR ances
+```{r}
+ct <- df[!is.na(df$cT),]
+ct$cT <- factor(ct$cT, levels = c("T1","T2","T3","T4"))
+p <- ggboxplot(ct, x = "Country", y = "EUR.ances", ylim = c(0,1.05),
+          color = "cT", palette = c("#e7298a","#d95f02","#66a61e","#7570b3"),
+          add = "jitter")
+ct <- p + stat_compare_means(aes(group = cT), method = "kruskal.test", label = "p.format",   label.y = 1.05)
+```
+
+```{r}
+# Combine the plots with gridExtra
+tiff("Country_cTUMOR_kruskal_EUR.tiff", units="in", width=15, height=5, res=1200)
+ct# insert ggplot code
+dev.off()
+```
+
+---------------------------
+EXTENDED FIGURE 3
+---------------------------
+```{r}
+#replace variables according to extended figure 3
+wilcox_effsize(data = df, formula = AFR.ances ~ Stage) #light blue squares in plot
+
+kruskal_effsize(data = df, formula = EAS.ances ~ Hist_Grade) #lilac squares in plot
+
+cramerV(table(df$Hist_Grade, complete$Country)) #green squares in plot
+
+cor.test(df$AFR.ances, df$EUR.ances, method = "spearman") #light red squares in plot
+```
+
+SOLO BRASIL
+```{r}
+df <- subset(df, Country == "Brazil")
+
+cor.test(df$EAS.ances, df$AFR.ances, method = "spearman") #light red squares in plot
+```

@@ -1,0 +1,206 @@
+---
+title: "Table 3"
+output: html_notebook
+---
+
+```{r}
+library(survival)
+library(readxl)
+require(openxlsx)
+```
+
+Table 3: Univariate and multivariate Cox proportional hazards models for survival according to every 10% increase in European or Indigenous American genetic ancestry
+```{r}
+df <- read_excel("dataset_LACRN.xlsx") #set path
+df <- subset(df, PAM50 != "Normal")
+```
+
+```{r}
+df$EUR <- df$EUR.ances*10 #10% increase calculation
+df$IA <- df$IA.ances*10 
+```
+
+Schoenfeld 
+```{r}
+coxmodel <- coxph(Surv(OS.time, OS.status) ~ EUR, data = df) #check for EUR 
+temp <- cox.zph(coxmodel) 
+print(temp)
+
+coxmodel <- coxph(Surv(OS.time, OS.status) ~ IA, data = df) #check for IA
+temp <- cox.zph(coxmodel) 
+print(temp)
+```
+
+Cox models - EUR
+```{r}
+eur <- df
+#Univariate
+coxmodel <- coxph(Surv(OS.time, OS.status) ~ EUR, data = eur) 
+coxmodel <- summary(coxmodel)
+res.1 <- data.frame(NA)
+res.1$model <- "Univariate"
+res.1$HR <- coxmodel$coefficients[2]
+res.1$lower.IC95 <- coxmodel$conf.int[3]
+res.1$upper.IC95 <- coxmodel$conf.int[4]
+res.1$p.value <- coxmodel$coefficients[5]
+res.1$n <- coxmodel$n
+res.1 <- res.1[,-1]
+res.1[2,] <- NA
+
+#+ PAM50
+coxmodel <- coxph(Surv(OS.time, OS.status) ~ EUR + PAM50, data = eur) 
+coxmodel <- summary(coxmodel)
+res.2 <- data.frame(NA)
+res.2$model <- "PAM50"
+res.2$HR <- coxmodel$coefficients[1,2]
+res.2$lower.IC95 <- coxmodel$conf.int[1,3]
+res.2$upper.IC95 <- coxmodel$conf.int[1,4]
+res.2$p.value <- coxmodel$coefficients[1,5]
+res.2$n <- coxmodel$n
+res.2 <- res.2[,-1]
+res.2[2,] <- NA
+
+#+ PAM50 + cN
+coxmodel <- coxph(Surv(OS.time, OS.status) ~ EUR + PAM50 + cN, data = eur) 
+coxmodel <- summary(coxmodel)
+res.3 <- data.frame(NA)
+res.3$model <- "PAM50 subtypes + cN"
+res.3$HR <- coxmodel$coefficients[1,2]
+res.3$lower.IC95 <- coxmodel$conf.int[1,3]
+res.3$upper.IC95 <- coxmodel$conf.int[1,4]
+res.3$p.value <- coxmodel$coefficients[1,5]
+res.3$n <- coxmodel$n
+res.3 <- res.3[,-1]
+res.3[2,] <- NA
+
+#PAM50 + cN + Age
+coxmodel <- coxph(Surv(OS.time, OS.status) ~ EUR + PAM50 + cN + Age, data = eur) 
+coxmodel <- summary(coxmodel)
+res.4 <- data.frame(NA)
+res.4$model <- "PAM50 subtypes + cN + Age at Dx"
+res.4$HR <- coxmodel$coefficients[1,2]
+res.4$lower.IC95 <- coxmodel$conf.int[1,3]
+res.4$upper.IC95 <- coxmodel$conf.int[1,4]
+res.4$p.value <- coxmodel$coefficients[1,5]
+res.4$n <- coxmodel$n
+res.4 <- res.4[,-1]
+res.4[2,] <- NA
+
+#PAM50 + cN + Age
+coxmodel <- coxph(Surv(OS.time, OS.status) ~ EUR + PAM50 + cN + Age + AFR.ances, data = eur) 
+coxmodel <- summary(coxmodel)
+res.5 <- data.frame(NA)
+res.5$model <- "PAM50 subtypes + cN + Age at Dx + AFR ancestry"
+res.5$HR <- coxmodel$coefficients[1,2]
+res.5$lower.IC95 <- coxmodel$conf.int[1,3]
+res.5$upper.IC95 <- coxmodel$conf.int[1,4]
+res.5$p.value <- coxmodel$coefficients[1,5]
+res.5$n <- coxmodel$n
+res.5 <- res.5[,-1]
+res.5[2,] <- NA
+
+#PAM50 + cN + Age + Country
+coxmodel <- coxph(Surv(OS.time, OS.status) ~ EUR +PAM50 + cN + Age+ AFR.ances +Country, 
+                  data = eur) 
+coxmodel <- summary(coxmodel)
+res.6 <- data.frame(NA)
+res.6$model <- "PAM50 subtypes + cN + Age at Dx + AFR ancestry + Country"
+res.6$HR <- coxmodel$coefficients[1,2]
+res.6$lower.IC95 <- coxmodel$conf.int[1,3]
+res.6$upper.IC95 <- coxmodel$conf.int[1,4]
+res.6$p.value <- coxmodel$coefficients[1,5]
+res.6$n <- coxmodel$n
+res.6 <- res.6[,-1]
+res.6[2,] <- NA
+
+res.eur <- rbind(res.1, res.2, res.3, res.4, res.5, res.6)
+
+write.xlsx(res.eur, file = "Cox_EUR_addAFR.xlsx") #save results
+```
+
+Cox models - IA
+```{r}
+IA <- df
+#Univariate
+coxmodel <- coxph(Surv(OS.time, OS.status) ~ IA, data = IA) 
+coxmodel <- summary(coxmodel)
+res.1 <- data.frame(NA)
+res.1$model <- "Univariate"
+res.1$HR <- coxmodel$coefficients[2]
+res.1$lower.IC95 <- coxmodel$conf.int[3]
+res.1$upper.IC95 <- coxmodel$conf.int[4]
+res.1$p.value <- coxmodel$coefficients[5]
+res.1$n <- coxmodel$n
+res.1 <- res.1[,-1]
+res.1[2,] <- NA
+
+#+ PAM50
+coxmodel <- coxph(Surv(OS.time, OS.status) ~ IA + PAM50, data = IA) 
+coxmodel <- summary(coxmodel)
+res.2 <- data.frame(NA)
+res.2$model <- "PAM50"
+res.2$HR <- coxmodel$coefficients[1,2]
+res.2$lower.IC95 <- coxmodel$conf.int[1,3]
+res.2$upper.IC95 <- coxmodel$conf.int[1,4]
+res.2$p.value <- coxmodel$coefficients[1,5]
+res.2$n <- coxmodel$n
+res.2 <- res.2[,-1]
+res.2[2,] <- NA
+
+#+ PAM50 + cN
+coxmodel <- coxph(Surv(OS.time, OS.status) ~ IA + PAM50 + cN, data = IA) 
+coxmodel <- summary(coxmodel)
+res.3 <- data.frame(NA)
+res.3$model <- "PAM50 subtypes + cN"
+res.3$HR <- coxmodel$coefficients[1,2]
+res.3$lower.IC95 <- coxmodel$conf.int[1,3]
+res.3$upper.IC95 <- coxmodel$conf.int[1,4]
+res.3$p.value <- coxmodel$coefficients[1,5]
+res.3$n <- coxmodel$n
+res.3 <- res.3[,-1]
+res.3[2,] <- NA
+
+#+ PAM50 + cN + Age
+coxmodel <- coxph(Surv(OS.time, OS.status) ~ IA + PAM50 + cN + Age, data = IA) 
+coxmodel <- summary(coxmodel)
+res.4 <- data.frame(NA)
+res.4$model <- "PAM50 subtypes + cN + Age at Dx"
+res.4$HR <- coxmodel$coefficients[1,2]
+res.4$lower.IC95 <- coxmodel$conf.int[1,3]
+res.4$upper.IC95 <- coxmodel$conf.int[1,4]
+res.4$p.value <- coxmodel$coefficients[1,5]
+res.4$n <- coxmodel$n
+res.4 <- res.4[,-1]
+res.4[2,] <- NA
+
+#+ PAM50 + cN + Age
+coxmodel <- coxph(Surv(OS.time, OS.status) ~ IA + PAM50 + cN + Age + AFR.ances, data = IA) 
+coxmodel <- summary(coxmodel)
+res.5 <- data.frame(NA)
+res.5$model <- "PAM50 subtypes + cN + Age at Dx + AFR ancestry"
+res.5$HR <- coxmodel$coefficients[1,2]
+res.5$lower.IC95 <- coxmodel$conf.int[1,3]
+res.5$upper.IC95 <- coxmodel$conf.int[1,4]
+res.5$p.value <- coxmodel$coefficients[1,5]
+res.5$n <- coxmodel$n
+res.5 <- res.5[,-1]
+res.5[2,] <- NA
+
+#+ PAM50 + cN + Age + Country
+coxmodel <- coxph(Surv(OS.time, OS.status) ~ IA + PAM50 + cN + Age + AFR.ances + Country, 
+                  data = IA) 
+coxmodel <- summary(coxmodel)
+res.6 <- data.frame(NA)
+res.6$model <- "PAM50 subtypes + cN + Age at Dx + AFR ancestry + Country"
+res.6$HR <- coxmodel$coefficients[1,2]
+res.6$lower.IC95 <- coxmodel$conf.int[1,3]
+res.6$upper.IC95 <- coxmodel$conf.int[1,4]
+res.6$p.value <- coxmodel$coefficients[1,5]
+res.6$n <- coxmodel$n
+res.6 <- res.6[,-1]
+res.6[2,] <- NA
+
+res.IA <- rbind(res.1, res.2, res.3, res.4, res.5, res.6)
+
+write.xlsx(res.IA, file = "Cox_IA_addAFR.xlsx") #save results
+```

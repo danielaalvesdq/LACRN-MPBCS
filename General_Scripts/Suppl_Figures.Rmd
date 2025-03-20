@@ -1,0 +1,447 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+
+```{r}
+library(readxl)
+library(FSA)
+library(ggplot2)
+library(ggsignif)
+library(ggbeeswarm)
+```
+
+```{r}
+df <- read_excel("dataset_LACRN.xlsx") #set path
+```
+
+---------------------------
+SUPPLEMENTARY FIGURE 1
+---------------------------
+Institutions per Country
+```{r}
+arg <- subset(df, Country == "Argentina")
+bra <- subset(df, Country == "Brazil")
+mex <- subset(df, Country == "Mexico")
+ch <- subset(df, Country == "Chile")
+uru <- subset(df, Country == "Uruguay")
+```
+
+Statistics
+ARGENTINA
+```{r}
+ins <- arg[!is.na(arg$Institution),]
+EUR.ances <- ins$EUR.ances
+IA.ances <- ins$IA.ances
+EAS.ances <- ins$EAS.ances
+AFR.ances <- ins$AFR.ances
+
+Institution <- ins$Institution
+
+# Compute the analysis of variance
+res.aov <- aov(IA.ances ~ Institution, data = ins) #replace for each ancestry to check the assumption (IA.ances, EUR.ances, AFR.ances, EAS.ances)
+# Extract the residuals
+aov_residuals <- residuals(object = res.aov)
+# Run Shapiro-Wilk test
+shapiro.test(x = aov_residuals)#non-normal distribution
+
+#Non-parametric alternative to one-way ANOVA test
+kruskal.test(EUR.ances ~ Institution) #0.365
+kruskal.test(IA.ances ~ Institution) #0.532
+kruskal.test(EAS.ances ~ Institution) #0.881
+kruskal.test(AFR.ances ~ Institution) #0.357
+```
+
+BRAZIL
+```{r}
+ins <- bra[!is.na(bra$Institution),]
+EUR.ances <- ins$EUR.ances
+IA.ances <- ins$IA.ances
+EAS.ances <- ins$EAS.ances
+AFR.ances <- ins$AFR.ances
+
+Institution <- ins$Institution
+
+# Compute the analysis of variance
+res.aov <- aov(IA.ances ~ Institution, data = ins) #replace for each ancestry to check the assumption (IA.ances, EUR.ances, AFR.ances, EAS.ances)
+# Extract the residuals
+aov_residuals <- residuals(object = res.aov)
+# Run Shapiro-Wilk test
+shapiro.test(x = aov_residuals)#non-normal distribution
+
+#Non-parametric alternative to one-way ANOVA test
+kruskal.test(EUR.ances ~ Institution) #0.003
+dunnTest(EUR.ances ~ Institution, method = "bh") 
+#AN vs AJ 0.001
+kruskal.test(IA.ances ~ Institution) #0.217
+kruskal.test(EAS.ances ~ Institution) #0.725
+kruskal.test(AFR.ances ~ Institution) #<0.001
+dunnTest(AFR.ances ~ Institution, method = "bh")
+#AJ vs AN <0.001
+#AQ vs AB 0.024
+#AQ vs AJ 0.018
+#AQ vs AN <0.001
+```
+
+CHILE
+```{r}
+ins <- ch[!is.na(ch$Institution),]
+EUR.ances <- ins$EUR.ances
+IA.ances <- ins$IA.ances
+EAS.ances <- ins$EAS.ances
+AFR.ances <- ins$AFR.ances
+
+Institution <- ins$Institution
+
+# Compute the analysis of variance
+res.aov <- aov(IA.ances ~ Institution, data = ins) #replace for each ancestry to check the assumption (IA.ances, EUR.ances, AFR.ances, EAS.ances)
+# Extract the residuals
+aov_residuals <- residuals(object = res.aov)
+# Run Shapiro-Wilk test
+shapiro.test(x = aov_residuals)#non-normal distribution
+
+#Non-parametric alternative to one-way ANOVA test
+kruskal.test(EUR.ances ~ Institution) #0.392
+kruskal.test(IA.ances ~ Institution) #0.394
+kruskal.test(EAS.ances ~ Institution) #0.274
+kruskal.test(AFR.ances ~ Institution) #0.732
+```
+
+MEXICO
+```{r}
+ins <- mex[!is.na(mex$Institution),]
+EUR.ances <- ins$EUR.ances
+IA.ances <- ins$IA.ances
+EAS.ances <- ins$EAS.ances
+AFR.ances <- ins$AFR.ances
+
+Institution <- ins$Institution
+
+# Compute the analysis of variance
+res.aov <- aov(IA.ances ~ Institution, data = ins) #replace for each ancestry to check the assumption (IA.ances, EUR.ances, AFR.ances, EAS.ances)
+# Extract the residuals
+aov_residuals <- residuals(object = res.aov)
+# Run Shapiro-Wilk test
+shapiro.test(x = aov_residuals)#non-normal distribution
+
+#Non-parametric alternative to one-way ANOVA test
+kruskal.test(EUR.ances ~ Institution) #0.633
+kruskal.test(IA.ances ~ Institution) #0.715
+kruskal.test(EAS.ances ~ Institution) #0.144
+kruskal.test(AFR.ances ~ Institution) #0.216
+```
+
+URUGUAY
+```{r}
+ins <- uru[!is.na(uru$Institution),]
+EUR.ances <- ins$EUR.ances
+IA.ances <- ins$IA.ances
+EAS.ances <- ins$EAS.ances
+AFR.ances <- ins$AFR.ances
+
+Institution <- ins$Institution
+
+# Compute the analysis of variance
+res.aov <- aov(IA.ances ~ Institution, data = ins) #replace for each ancestry to check the assumption (IA.ances, EUR.ances, AFR.ances, EAS.ances)
+# Extract the residuals
+aov_residuals <- residuals(object = res.aov)
+# Run Shapiro-Wilk test
+shapiro.test(x = aov_residuals)#non-normal distribution
+
+#Non-parametric alternative to one-way ANOVA test
+kruskal.test(EUR.ances ~ Institution) #0.217
+kruskal.test(IA.ances ~ Institution) #0.557
+kruskal.test(EAS.ances ~ Institution) #0.270
+kruskal.test(AFR.ances ~ Institution) #0.349
+```
+
+Plots
+All the previous p-values obtained from Kruskal-Wallis test are added in each plot as labels manually
+EUR
+```{r}
+#ARGENTINA
+arg <- arg[!is.na(arg$Institution),]
+plot1 <- ggplot(arg, aes(x=arg$Institution, y=EUR.ances, fill = arg$Institution)) + 
+   geom_quasirandom(width = 0.4, aes(color = Institution))+
+ scale_fill_manual(values=c("#0570b0","#0570b0","#0570b0","#0570b0"))+
+  scale_color_manual(values=c("#0570b0","#0570b0","#0570b0","#0570b0"))+
+  geom_boxplot(fill="white", alpha = 0) +
+  theme(legend.position="none", panel.background = element_blank())+labs(x="Institution", y = "EUR Ancestry")+
+  theme_classic() + theme(legend.position = "none", axis.text.x = element_text(size = 10, color = "black"), axis.text.y = element_text(size = 10, color = "black")) + annotate("text",x=2, y=1.1, label="Kruskal-Wallis p-value = 0.356", size = 3.5, fontface="italic")
+#BRAZIL
+bra <- bra[!is.na(bra$Institution),]
+plot2 <- ggplot(bra, aes(x=bra$Institution, y=EUR.ances, fill = bra$Institution)) + 
+   geom_quasirandom(width = 0.4, aes(color = Institution))+
+ scale_fill_manual(values=c("#238b45","#238b45","#238b45","#238b45","#238b45","#238b45"))+
+  scale_color_manual(values=c("#006d2c","#238b45","#238b45","#238b45","#238b45","#238b45"))+
+  geom_boxplot(fill="white", alpha = 0) +
+ geom_signif(comparisons=list(c("AN", "AJ")), annotations="***",
+              y_position = 1, tip_length = 0, vjust=0.4) +
+  theme(legend.position="none", panel.background = element_blank())+labs(x="Institution", y = "EUR Ancestry")+
+  theme_classic() + theme(legend.position = "none", axis.text.x = element_text(size = 10, color = "black"), axis.text.y = element_text(size = 10, color = "black")) + annotate("text",x=2, y=1.15, label="Kruskal-Wallis p-value = 0.003", size = 3.5, fontface="italic")
+#CHILE
+ch <- ch[!is.na(ch$Institution),]
+plot3 <- ggplot(ch, aes(x=ch$Institution, y=EUR.ances, fill = ch$Institution)) + 
+   geom_quasirandom(width = 0.4, aes(color = Institution))+
+ scale_fill_manual(values=c("#cb181d","#cb181d","#cb181d","#cb181d","#cb181d","#cb181d"))+
+  scale_color_manual(values=c("#cb181d","#cb181d","#cb181d","#cb181d","#cb181d","#cb181d"))+
+  geom_boxplot(fill="white", alpha = 0) +
+  theme(legend.position="none", panel.background = element_blank())+labs(x="Institution", y = "EUR Ancestry")+
+  theme_classic() + theme(legend.position = "none", axis.text.x = element_text(size = 10, color = "black"), axis.text.y = element_text(size = 10, color = "black")) + annotate("text",x=2, y=1.1, label="Kruskal-Wallis p-value = 0.392", size = 3.5, fontface="italic")
+#MEXICO
+mex <- mex[!is.na(mex$Institution),]
+plot4 <- ggplot(mex, aes(x=mex$Institution, y=EUR.ances, fill = mex$Institution)) + 
+   geom_quasirandom(width = 0.4, aes(color = Institution))+
+ scale_fill_manual(values=c("#f16913","#f16913","#f16913","#f16913","#f16913","#f16913","#f16913","#f16913","#f16913"))+
+  scale_color_manual(values=c("#f16913","#f16913","#f16913","#f16913","#f16913","#f16913","#f16913","#f16913","#f16913"))+
+  geom_boxplot(fill="white", alpha = 0) +
+  theme(legend.position="none", panel.background = element_blank())+labs(x="Institution", y = "EUR Ancestry")+
+  theme_classic() + theme(legend.position = "none", axis.text.x = element_text(size = 10, color = "black"), axis.text.y = element_text(size = 10, color = "black")) + annotate("text",x=4, y=1.1, label="Kruskal-Wallis p-value = 0.633", size = 3.5, fontface="italic")
+#URUGUAY
+uru <- uru[!is.na(uru$Institution),]
+plot5 <- ggplot(uru, aes(x=uru$Institution, y=EUR.ances, fill = uru$Institution)) + 
+   geom_quasirandom(width = 0.4, aes(color = Institution))+
+ scale_fill_manual(values=c("#810f7c","#810f7c","#810f7c","#810f7c","#810f7c"))+
+  scale_color_manual(values=c("#810f7c","#810f7c","#810f7c","#810f7c","#810f7c"))+
+  geom_boxplot(fill="white", alpha = 0) +
+  theme(legend.position="none", panel.background = element_blank())+labs(x="Institution", y = "EUR Ancestry")+
+  theme_classic() + theme(legend.position = "none", axis.text.x = element_text(size = 10, color = "black"), axis.text.y = element_text(size = 10, color = "black")) + annotate("text",x=2, y=1.1, label="Kruskal-Wallis p-value = 0.217", size = 3.5, fontface="italic")
+```
+
+IA
+```{r}
+#ARGENTINA
+plot6 <- ggplot(arg, aes(x=arg$Institution, y=IA.ances, fill = arg$Institution)) + 
+   geom_quasirandom(width = 0.4, aes(color = Institution))+
+ scale_fill_manual(values=c("#0570b0","#0570b0","#0570b0","#0570b0"))+
+  scale_color_manual(values=c("#0570b0","#0570b0","#0570b0","#0570b0"))+
+  geom_boxplot(fill="white", alpha = 0) +
+  theme(legend.position="none", panel.background = element_blank())+labs(x="Institution", y = "AMR Ancestry")+
+  theme_classic() + theme(legend.position = "none", axis.text.x = element_text(size = 10, color = "black"), axis.text.y = element_text(size = 10, color = "black")) + annotate("text",x=2, y=0.85, label="Kruskal-Wallis p-value = 0.532", size = 3.5, fontface="italic")
+#BRAZIL
+plot7 <- ggplot(bra, aes(x=bra$Institution, y=IA.ances, fill = bra$Institution)) + 
+   geom_quasirandom(width = 0.4, aes(color = Institution))+
+ scale_fill_manual(values=c("#238b45","#238b45","#238b45","#238b45","#238b45","#238b45"))+
+  scale_color_manual(values=c("#006d2c","#238b45","#238b45","#238b45","#238b45","#238b45"))+
+  geom_boxplot(fill="white", alpha = 0) +
+  theme(legend.position="none", panel.background = element_blank())+labs(x="Institution", y = "AMR Ancestry")+
+  theme_classic() + theme(legend.position = "none", axis.text.x = element_text(size = 10, color = "black"), axis.text.y = element_text(size = 10, color = "black")) + annotate("text",x=2, y=0.35, label="Kruskal-Wallis p-value = 0.217", size = 3.5, fontface="italic")
+#CHILE
+ch <- ch[!is.na(ch$Institution),]
+plot8 <- ggplot(ch, aes(x=ch$Institution, y=IA.ances, fill = ch$Institution)) + 
+   geom_quasirandom(width = 0.4, aes(color = Institution))+
+ scale_fill_manual(values=c("#cb181d","#cb181d","#cb181d","#cb181d","#cb181d","#cb181d"))+
+  scale_color_manual(values=c("#cb181d","#cb181d","#cb181d","#cb181d","#cb181d","#cb181d"))+
+  geom_boxplot(fill="white", alpha = 0) +
+  theme(legend.position="none", panel.background = element_blank())+labs(x="Institution", y = "AMR Ancestry")+
+  theme_classic() + theme(legend.position = "none", axis.text.x = element_text(size = 10, color = "black"), axis.text.y = element_text(size = 10, color = "black")) + annotate("text",x=2, y=0.9, label="Kruskal-Wallis p-value = 0.394", size = 3.5, fontface="italic")
+#MEXICO
+mex <- mex[!is.na(mex$Institution),]
+plot9 <- ggplot(mex, aes(x=mex$Institution, y=IA.ances, fill = mex$Institution)) + 
+   geom_quasirandom(width = 0.4, aes(color = Institution))+
+ scale_fill_manual(values=c("#f16913","#f16913","#f16913","#f16913","#f16913","#f16913","#f16913","#f16913","#f16913"))+
+  scale_color_manual(values=c("#f16913","#f16913","#f16913","#f16913","#f16913","#f16913","#f16913","#f16913","#f16913"))+
+  geom_boxplot(fill="white", alpha = 0) +
+  theme(legend.position="none", panel.background = element_blank())+labs(x="Institution", y = "AMR Ancestry")+
+  theme_classic() + theme(legend.position = "none", axis.text.x = element_text(size = 10, color = "black"), axis.text.y = element_text(size = 10, color = "black")) + annotate("text",x=4, y=0.9, label="Kruskal-Wallis p-value = 0.715", size = 3.5, fontface="italic")
+#URUGUAY
+uru <- uru[!is.na(uru$Institution),]
+plot10 <- ggplot(uru, aes(x=uru$Institution, y=IA.ances, fill = uru$Institution)) + 
+   geom_quasirandom(width = 0.4, aes(color = Institution))+
+ scale_fill_manual(values=c("#810f7c","#810f7c","#810f7c","#810f7c","#810f7c"))+
+  scale_color_manual(values=c("#810f7c","#810f7c","#810f7c","#810f7c","#810f7c"))+
+  geom_boxplot(fill="white", alpha = 0) +
+  theme(legend.position="none", panel.background = element_blank())+labs(x="Institution", y = "AMR Ancestry")+
+  theme_classic() + theme(legend.position = "none", axis.text.x = element_text(size = 10, color = "black"), axis.text.y = element_text(size = 10, color = "black")) + annotate("text",x=2, y=0.6, label="Kruskal-Wallis p-value = 0.557", size = 3.5, fontface="italic")
+```
+
+AFR
+```{r}
+#ARGENTINA
+plot11 <- ggplot(arg, aes(x=arg$Institution, y=AFR.ances, fill = arg$Institution)) + 
+   geom_quasirandom(width = 0.4, aes(color = Institution))+
+ scale_fill_manual(values=c("#0570b0","#0570b0","#0570b0","#0570b0"))+
+  scale_color_manual(values=c("#0570b0","#0570b0","#0570b0","#0570b0"))+
+  geom_boxplot(fill="white", alpha = 0) +
+  theme(legend.position="none", panel.background = element_blank())+labs(x="Institution", y = "AFR Ancestry")+
+  theme_classic() + theme(legend.position = "none", axis.text.x = element_text(size = 10, color = "black"), axis.text.y = element_text(size = 10, color = "black")) + annotate("text",x=2, y=0.2, label="Kruskal-Wallis p-value = 0.357", size = 3.5, fontface="italic")
+#BRAZIL
+plot12 <- ggplot(bra, aes(x=bra$Institution, y=AFR.ances, fill = bra$Institution)) + 
+   geom_quasirandom(width = 0.4, aes(color = Institution))+
+ scale_fill_manual(values=c("#238b45","#238b45","#238b45","#238b45","#238b45","#238b45"))+
+  scale_color_manual(values=c("#006d2c","#238b45","#238b45","#238b45","#238b45","#238b45"))+
+  geom_boxplot(fill="white", alpha = 0) +
+geom_signif(comparisons=list(c("AN", "AJ")), annotations="***",
+              y_position = 0.95, tip_length = 0, vjust=0.4) +
+geom_signif(comparisons=list(c("AN", "AQ")), annotations="***",
+              y_position = 0.9, tip_length = 0, vjust=0.4) +
+  geom_signif(comparisons=list(c("AB", "AQ")), annotations="*",
+              y_position = 1, tip_length = 0, vjust=0.4) +
+  geom_signif(comparisons=list(c("AJ", "AQ")), annotations="**",
+              y_position = 1.05, tip_length = 0, vjust=0.4) +
+  theme(legend.position="none", panel.background = element_blank())+labs(x="Institution", y = "AFR Ancestry")+
+  theme_classic() + theme(legend.position = "none", axis.text.x = element_text(size = 10, color = "black"), axis.text.y = element_text(size = 10, color = "black")) + annotate("text",x=2, y=1.2, label="Kruskal-Wallis p-value < 0.001", size = 3.5, fontface="italic")
+#CHILE
+plot13 <- ggplot(ch, aes(x=ch$Institution, y=AFR.ances, fill = ch$Institution)) + 
+   geom_quasirandom(width = 0.4, aes(color = Institution))+
+ scale_fill_manual(values=c("#cb181d","#cb181d","#cb181d","#cb181d","#cb181d","#cb181d"))+
+  scale_color_manual(values=c("#cb181d","#cb181d","#cb181d","#cb181d","#cb181d","#cb181d"))+
+  geom_boxplot(fill="white", alpha = 0) +
+  theme(legend.position="none", panel.background = element_blank())+labs(x="Institution", y = "AFR Ancestry")+
+  theme_classic() + theme(legend.position = "none", axis.text.x = element_text(size = 10, color = "black"), axis.text.y = element_text(size = 10, color = "black")) + annotate("text",x=2, y=0.07, label="Kruskal-Wallis p-value = 0.732", size = 3.5, fontface="italic")
+#MEXICO
+mex <- mex[!is.na(mex$Institution),]
+plot14 <- ggplot(mex, aes(x=mex$Institution, y=AFR.ances, fill = mex$Institution)) + 
+   geom_quasirandom(width = 0.4, aes(color = Institution))+
+ scale_fill_manual(values=c("#f16913","#f16913","#f16913","#f16913","#f16913","#f16913","#f16913","#f16913","#f16913"))+
+  scale_color_manual(values=c("#f16913","#f16913","#f16913","#f16913","#f16913","#f16913","#f16913","#f16913","#f16913"))+
+  geom_boxplot(fill="white", alpha = 0) +
+  theme(legend.position="none", panel.background = element_blank())+labs(x="Institution", y = "AFR Ancestry")+
+  theme_classic() + theme(legend.position = "none", axis.text.x = element_text(size = 10, color = "black"), axis.text.y = element_text(size = 10, color = "black")) + annotate("text",x=4, y=0.13, label="Kruskal-Wallis p-value = 0.216", size = 3.5, fontface="italic")
+#URUGUAY
+uru <- uru[!is.na(uru$Institution),]
+plot15 <- ggplot(uru, aes(x=uru$Institution, y=AFR.ances, fill = uru$Institution)) + 
+   geom_quasirandom(width = 0.4, aes(color = Institution))+
+ scale_fill_manual(values=c("#810f7c","#810f7c","#810f7c","#810f7c","#810f7c"))+
+  scale_color_manual(values=c("#810f7c","#810f7c","#810f7c","#810f7c","#810f7c"))+
+  geom_boxplot(fill="white", alpha = 0) +
+  theme(legend.position="none", panel.background = element_blank())+labs(x="Institution", y = "AFR Ancestry")+
+  theme_classic() + theme(legend.position = "none", axis.text.x = element_text(size = 10, color = "black"), axis.text.y = element_text(size = 10, color = "black")) + annotate("text",x=2, y=0.6, label="Kruskal-Wallis p-value = 0.349", size = 3.5, fontface="italic")
+```
+
+EAS
+```{r}
+#ARGENTINA
+plot16 <- ggplot(arg, aes(x=arg$Institution, y=EAS.ances, fill = arg$Institution)) + 
+   geom_quasirandom(width = 0.4, aes(color = Institution))+
+ scale_fill_manual(values=c("#0570b0","#0570b0","#0570b0","#0570b0"))+
+  scale_color_manual(values=c("#0570b0","#0570b0","#0570b0","#0570b0"))+
+  geom_boxplot(fill="white", alpha = 0) +
+  theme(legend.position="none", panel.background = element_blank())+labs(x="Institution", y = "EAS Ancestry")+
+  theme_classic() + theme(legend.position = "none", axis.text.x = element_text(size = 10, color = "black"), axis.text.y = element_text(size = 10, color = "black")) + annotate("text",x=2, y=1, label="Kruskal-Wallis p-value = 0.881", size = 3.5, fontface="italic")
+#BRAZIL
+plot17 <- ggplot(bra, aes(x=bra$Institution, y=EAS.ances, fill = bra$Institution)) + 
+   geom_quasirandom(width = 0.4, aes(color = Institution))+
+ scale_fill_manual(values=c("#238b45","#238b45","#238b45","#238b45","#238b45","#238b45"))+
+  scale_color_manual(values=c("#006d2c","#238b45","#238b45","#238b45","#238b45","#238b45"))+
+  geom_boxplot(fill="white", alpha = 0) +
+  theme(legend.position="none", panel.background = element_blank())+labs(x="Institution", y = "EAS Ancestry")+
+  theme_classic() + theme(legend.position = "none", axis.text.x = element_text(size = 10, color = "black"), axis.text.y = element_text(size = 10, color = "black")) + annotate("text",x=2, y=1.1, label="Kruskal-Wallis p-value = 0.725", size = 3.5, fontface="italic")
+#CHILE
+ch <- ch[!is.na(ch$Institution),]
+plot18 <- ggplot(ch, aes(x=ch$Institution, y=EAS.ances, fill = ch$Institution)) + 
+   geom_quasirandom(width = 0.4, aes(color = Institution))+
+ scale_fill_manual(values=c("#cb181d","#cb181d","#cb181d","#cb181d","#cb181d","#cb181d"))+
+  scale_color_manual(values=c("#cb181d","#cb181d","#cb181d","#cb181d","#cb181d","#cb181d"))+
+  geom_boxplot(fill="white", alpha = 0) +
+  theme(legend.position="none", panel.background = element_blank())+labs(x="Institution", y = "EAS Ancestry")+
+  theme_classic() + theme(legend.position = "none", axis.text.x = element_text(size = 10, color = "black"), axis.text.y = element_text(size = 10, color = "black")) + annotate("text",x=2, y=0.13, label="Kruskal-Wallis p-value = 0.274", size = 3.5, fontface="italic")
+#MEXICO
+mex <- mex[!is.na(mex$Institution),]
+plot19 <- ggplot(mex, aes(x=mex$Institution, y=EAS.ances, fill = mex$Institution)) + 
+   geom_quasirandom(width = 0.4, aes(color = Institution))+
+ scale_fill_manual(values=c("#f16913","#f16913","#f16913","#f16913","#f16913","#f16913","#f16913","#f16913","#f16913"))+
+  scale_color_manual(values=c("#f16913","#f16913","#f16913","#f16913","#f16913","#f16913","#f16913","#f16913","#f16913"))+
+  geom_boxplot(fill="white", alpha = 0) +
+  theme(legend.position="none", panel.background = element_blank())+labs(x="Institution", y = "EAS Ancestry")+
+  theme_classic() + theme(legend.position = "none", axis.text.x = element_text(size = 10, color = "black"), axis.text.y = element_text(size = 10, color = "black")) + annotate("text",x=4, y=1, label="Kruskal-Wallis p-value = 0.144", size = 3.5, fontface="italic")
+#URUGUAY
+uru <- uru[!is.na(uru$Institution),]
+plot20 <- ggplot(uru, aes(x=uru$Institution, y=EAS.ances, fill = uru$Institution)) + 
+   geom_quasirandom(width = 0.4, aes(color = Institution))+
+ scale_fill_manual(values=c("#810f7c","#810f7c","#810f7c","#810f7c","#810f7c"))+
+  scale_color_manual(values=c("#810f7c","#810f7c","#810f7c","#810f7c","#810f7c"))+
+  geom_boxplot(fill="white", alpha = 0) +
+  theme(legend.position="none", panel.background = element_blank())+labs(x="Institution", y = "EAS Ancestry")+
+  theme_classic() + theme(legend.position = "none", axis.text.x = element_text(size = 10, color = "black"), axis.text.y = element_text(size = 10, color = "black")) + annotate("text",x=2, y=0.08, label="Kruskal-Wallis p-value = 0.270", size = 3.5, fontface="italic")
+```
+
+```{r}
+# Combine the plots with gridExtra to save them
+tiff("ances_institution.tiff", units="in", width=22, height=15, res=1200)
+grid.arrange(plot1, plot2, plot3, plot4, plot5, plot6, plot7, plot8, plot9, plot10, plot11, plot12, plot13, plot14,
+             plot15, plot16, plot17, plot18, plot19, plot20, nrow = 4) 
+# insert ggplot code
+dev.off()
+```
+
+---------------------------
+SUPPLEMENTARY FIGURE 2
+---------------------------
+IHC
+```{r}
+table(df$IHC)
+df_ihc <- df[!is.na(df$IHC),]
+
+EUR.ances <- df_ihc$EUR.ances
+IA.ances <- df_ihc$IA.ances
+EAS.ances <- df_ihc$EAS.ances
+AFR.ances <- df_ihc$AFR.ances
+
+IHC <- df_ihc$IHC
+
+# Compute the analysis of variance
+res.aov <- aov(IA.ances ~ IHC, data = df_ihc) #replace for each ancestry to check the assumption (IA.ances, EUR.ances, AFR.ances, EAS.ances)
+# Extract the residuals
+aov_residuals <- residuals(object = res.aov)
+# Run Shapiro-Wilk test
+shapiro.test(x = aov_residuals)#non-normal distribution
+
+#Non-parametric alternative to one-way ANOVA test
+kruskal.test(EUR.ances ~ IHC) #0.272
+dunnTest(EUR.ances ~ IHC, method = "bh") #Dunn test for pairwaise comparisons
+
+kruskal.test(IA.ances ~ IHC) #0.223
+dunnTest(IA.ances ~ IHC, method = "bh") #Dunn test for pairwaise comparisons
+
+kruskal.test(EAS.ances ~ IHC) #0.188
+dunnTest(EAS.ances ~ IHC, method = "bh") #Dunn test for pairwaise comparisons
+
+kruskal.test(AFR.ances ~ IHC) #0.659
+dunnTest(AFR.ances ~ IHC, method = "bh") #Dunn test for pairwaise comparisons
+```
+
+```{r}
+#All the previous p-values obtained from Kruskal-Wallis test are added in each plot as labels manually
+level_order <- factor(df_ihc$IHC, level = c("HR(+)HER2(-)", "HR(+)HER2(+)", "HR(-)HER2(+)", "HR(-)HER2(-)"))
+#EUROPEAN
+plot1 <- ggplot(df_ihc, aes(x=level_order, y=EUR.ances, fill = level_order)) + 
+   geom_quasirandom(width = 0.4, aes(color = IHC))+
+ scale_fill_manual(values=c("#DE2D26","#FA9FB5","#1F78B4", "#94BCD2"))+
+  scale_color_manual(values=c("#DE2D26","#FA9FB5","#1F78B4", "#94BCD2"))+
+  geom_boxplot(fill="white", alpha = 0) +
+  theme(legend.position="none", panel.background = element_blank())+labs(x="IHC Subtypes", y = "EUR Ancestry")+
+  theme_classic() + theme(legend.position = "none", axis.text.x = element_text(size = 10, color = "black"), axis.text.y = element_text(size = 10, color = "black")) + annotate("text",x=2, y=1.1, label="Kruskal-Wallis p-value = 0.272", size = 3.5, fontface="italic")
+#INDIGENOUS AMERICAN
+plot2 <- ggplot(df_ihc, aes(x=level_order, y=IA.ances, fill = level_order)) + 
+   geom_quasirandom(width = 0.4, aes(color = IHC))+
+ scale_fill_manual(values=c("#DE2D26","#FA9FB5","#1F78B4", "#94BCD2"))+
+  scale_color_manual(values=c("#DE2D26","#FA9FB5","#1F78B4", "#94BCD2"))+
+  geom_boxplot(fill="white", alpha = 0) +
+  theme(legend.position="none", panel.background = element_blank())+labs(x="IHC Subtypes", y = "IA Ancestry")+
+  theme_classic() + theme(legend.position = "none", axis.text.x = element_text(size = 10, color = "black"), axis.text.y = element_text(size = 10, color = "black")) + annotate("text",x=2, y=0.85, label="Kruskal-Wallis p-value = 0.223", size = 3.5, fontface="italic")
+#AFRICAN
+plot3 <- ggplot(df_ihc, aes(x=level_order, y=AFR.ances, fill = level_order)) + 
+   geom_quasirandom(width = 0.4, aes(color = IHC))+
+ scale_fill_manual(values=c("#DE2D26","#FA9FB5","#1F78B4", "#94BCD2"))+
+  scale_color_manual(values=c("#DE2D26","#FA9FB5","#1F78B4", "#94BCD2"))+
+  geom_boxplot(fill="white", alpha = 0) +
+  theme(legend.position="none", panel.background = element_blank())+labs(x="IHC Subtypes", y = "AFR Ancestry")+
+  theme_classic() + theme(legend.position = "none", axis.text.x = element_text(size = 10, color = "black"), axis.text.y = element_text(size = 10, color = "black")) + annotate("text",x=2, y=0.9, label="Kruskal-Wallis p-value = 0.188", size = 3.5, fontface="italic")
+#EAST ASIAN
+plot4 <- ggplot(df_ihc, aes(x=level_order, y=EAS.ances, fill = level_order)) + 
+   geom_quasirandom(width = 0.4, aes(color = IHC))+
+ scale_fill_manual(values=c("#DE2D26","#FA9FB5","#1F78B4", "#94BCD2"))+
+  scale_color_manual(values=c("#DE2D26","#FA9FB5","#1F78B4", "#94BCD2"))+
+  geom_boxplot(fill="white", alpha = 0) +
+  theme(legend.position="none", panel.background = element_blank())+labs(x="IHC Subtypes", y = "EAS Ancestry")+
+  theme_classic() + theme(legend.position = "none", axis.text.x = element_text(size = 10, color = "black"), axis.text.y = element_text(size = 10, color = "black")) + annotate("text",x=2, y=1.1, label="Kruskal-Wallis p-value = 0.659", size = 3.5, fontface="italic")
+
+# Combine the plots with gridExtra to save them
+tiff("ancestry_IHC.tiff", units="in", width=10, height=7, res=2500)
+grid.arrange(plot1, plot2, plot3, plot4) 
+# insert ggplot code
+dev.off()
+```
+

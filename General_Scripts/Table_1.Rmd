@@ -1,0 +1,197 @@
+---
+title: "Table 1"
+output: html_notebook
+---
+
+```{r}
+library(readxl)
+library(dplyr)
+library(rcompanion)
+```
+
+```{r}
+df <- read_excel("dataset_LACRN.xlsx") #set path
+```
+
+Age at Diagnosis
+```{r}
+group_by(df, Country) %>%
+  summarise(
+    count = n(),
+    mean = mean(Age, na.rm = TRUE),
+    sd = sd(Age, na.rm = TRUE)
+  )
+
+# Compute the analysis of variance
+res.aov <- aov(Age ~ Country, data = df)
+# Summary of the analysis
+summary(res.aov)
+
+# Extract the residuals
+aov_residuals <- residuals(object = res.aov)
+# Run Shapiro-Wilk test
+shapiro.test(x = aov_residuals) #non-normal distribution
+
+#Non-parametric alternative to one-way ANOVA test
+kruskal.test(Age ~ Country, data = df)
+```
+
+Years of education
+```{r}
+df$EducationYears <- ifelse(is.na(df$EducationYears), "No info", df$EducationYears)
+
+table(df$EducationYears, df$Country) #count
+prop.table(table(df$EducationYears, df$Country), margin = 2) #proportions
+
+years <- subset(df, EducationYears != "No info")
+
+chisq.test(table(years$EducationYears, years$Country)) #obtain p-value from chi-square test
+cramerV(table(years$EducationYears, years$Country)) #Cramer's V
+```
+
+BMI
+```{r}
+df$BMI <- ifelse(df$BMI < 25, "<25",
+                 ifelse(df$BMI >= 25 & df$BMI < 30, "25-29.99",
+                        ifelse(df$BMI >= 30, ">30", "No info")))
+
+df$BMI <- ifelse(is.na(df$BMI), "No info", df$BMI)
+
+table(df$BMI, df$Country) #count
+prop.table(table(df$BMI, df$Country), margin = 2) #proportions
+
+BMI <- subset(df, BMI != "No info")
+
+chisq.test(table(BMI$BMI, BMI$Country)) #obtain p-value from chi-square test
+cramerV(table(BMI$BMI, BMI$Country)) #Cramer's V
+```
+
+Ancestry
+```{r}
+df$EUR.ances <- df$EUR.ances*100
+df$EAS.ances <- df$EAS.ances*100
+df$IA.ances <- df$IA.ances*100
+df$AFR.ances <- df$AFR.ances*100
+
+group_by(df, Country) %>% #results on the bottom of the chunk
+  summarise(
+    count = n(), 
+    median = median(EUR.ances, na.rm = TRUE),
+    Q = quantile(EUR.ances, na.rm = TRUE)
+  )
+
+group_by(df, Country) %>% #results on the bottom of the chunk
+  summarise(
+    count = n(), 
+    median = median(IA.ances, na.rm = TRUE),
+    Q = quantile(IA.ances, na.rm = TRUE)
+  )
+
+group_by(df, Country) %>% #results on the bottom of the chunk
+  summarise(
+    count = n(), 
+    median = median(AFR.ances, na.rm = TRUE),
+    Q = quantile(AFR.ances, na.rm = TRUE)
+  )
+
+group_by(df, Country) %>% #results on the bottom of the chunk
+  summarise(
+    count = n(), 
+    median = median(EAS.ances, na.rm = TRUE),
+    Q = quantile(EAS.ances, na.rm = TRUE)
+  )
+
+
+# Compute the analysis of variance
+res.aov <- aov(IA.ances ~ Country, data = df) #replace for each ancestry to check the assumption (IA.ances, EUR.ances, AFR.ances, EAS.ances)
+# Extract the residuals
+aov_residuals <- residuals(object = res.aov )
+# Run Shapiro-Wilk test
+shapiro.test(x = aov_residuals)#non-normal distribution
+
+#Non-parametric alternative to one-way ANOVA test
+kruskal.test(EUR.ances ~ Country, data = df)
+kruskal.test(IA.ances ~ Country, data = df)
+kruskal.test(AFR.ances ~ Country, data = df)
+kruskal.test(EAS.ances ~ Country, data = df)
+```
+
+Clinical Stage
+```{r}
+df$Stage <- ifelse(is.na(df$Stage), "No info", df$Stage)
+
+table(df$Stage, df$Country) #count
+prop.table(table(df$Stage, df$Country), margin = 2) #proportions
+
+stage <- subset(df, Stage != "No info")
+
+chisq.test(table(stage$Stage, stage$Country)) #obtain p-value from chi-square test
+cramerV(table(stage$Stage, stage$Country)) #Cramer's V
+```
+
+Lymph node 
+```{r}
+df["cN"][is.na(df["cN"])] <- "Miss/Unk"
+
+table(df$cN, df$Country) #count
+prop.table(table(df$cN, df$Country), margin = 2) #proportions
+
+lymph <- subset(df, cN != "Miss/Unk")
+
+chisq.test(table(lymph$cN, lymph$Country)) #obtain p-value from chi-square test
+cramerV(table(lymph$cN, lymph$Country)) #Cramer's V
+```
+
+HER2 
+```{r}
+table(df$HER2.status)
+df["HER2.status"][is.na(df["HER2.status"])] <- "Miss/Unk"
+
+table(df$HER2.status, df$Country) #count
+prop.table(table(df$HER2.status, df$Country), margin = 2) #proportions
+
+her2 <- subset(df, HER2.status != "Miss/Unk")
+
+chisq.test(table(her2$cN, her2$Country)) #obtain p-value from chi-square test
+cramerV(table(her2$cN, her2$Country)) #Cramer's V
+```
+
+IHC
+```{r}
+df["IHC"][is.na(df["IHC"])] <- "Miss/Unk"
+
+table(df$IHC, df$Country) #count
+prop.table(table(df$IHC, df$Country), margin = 2) #proportions
+
+ihc <- subset(df, cN != "Miss/Unk")
+
+chisq.test(table(ihc$IHC, ihc$Country)) #obtain p-value from chi-square test
+cramerV(table(ihc$IHC, ihc$Country)) #Cramer's V
+```
+
+PAM50
+```{r}
+df["PAM50"][is.na(df["PAM50"])] <- "Miss/Unk"
+
+table(df$PAM50, df$Country) #count
+prop.table(table(df$PAM50, df$Country), margin = 2) #proportions
+
+pam <- subset(df, PAM50 != "Miss/Unk")
+
+chisq.test(table(pam$PAM50, pam$Country)) #obtain p-value from chi-square test
+cramerV(table(pam$PAM50, pam$Country)) #Cramer's V
+```
+
+5 year survival
+```{r}
+df$OS.status <- ifelse(is.na(df$OS.status), "Miss/Unk", df$OS.status)
+
+table(df$OS.status, df$Country) #count
+prop.table(table(df$OS.status, df$Country), margin = 2) #proportions
+
+surv <- subset(df, OS.status != "Miss/Unk")
+
+chisq.test(table(df$OS.status, df$Country)) #obtain p-value from chi-square test
+cramerV(table(df$OS.status, df$Country)) #Cramer's V
+``` 
+

@@ -1,0 +1,442 @@
+---
+title: "Table 2"
+output: html_notebook
+---
+
+Multinomial logistic regression
+MODEL
+```{r}
+#define reference level
+#df$outcome <- relevel(df$outcome, ref = "reference_outcome")  #"reference_outcome" is one of the levels in your "outcome" variable
+
+#model<- multinom(outcome ~ predictor, data = df)
+#summary(model)
+#get OR, p value and CI.
+#result <-as.data.frame(tidy(model,exponentiate=T, conf.int=T))
+```
+
+```{r}
+library(readxl)
+library(nnet)
+library(broom)
+require(openxlsx)
+```
+
+Table 2 - Association between HER2 status and subtypes and IA/European genetic ancestry (for every 10% increase)
+
+```{r}
+df <- read_excel("dataset_LACRN.xlsx") #set path 
+
+df$EUR.ances_scaled <- df$EUR.ances*10 #10% increase calculation
+df$IA.ances_scaled <- df$IA.ances*10 #10% increase calculation
+```
+
+----------------------------
+FOR EUROPEAN ANCESTRY (EUR)
+----------------------------
+By HER2 status
+```{r}
+her2 <- df
+her2$HER2.status <- factor(her2$HER2.status, levels = c("Negative","Positive"))
+her2 <- her2[!is.na(her2$HER2.status),]
+
+#Univariate
+model <- multinom(HER2.status ~ EUR.ances_scaled, data = her2)
+#get OR, p value and CI.
+result.1 <-as.data.frame(tidy(model,exponentiate=T, conf.int=T))
+result.1$y.level <- rep("HER2+")
+result.1 <- subset(result.1, term != "(Intercept)")
+colnames(result.1)[1] <- "Subtypes"
+colnames(result.1)[3] <- "OR"
+result.1$n <- rep(919)
+result.1$model <- rep("Univariate")
+result.1[2,] <- rep(NA)
+
+# + nodal status (cN)
+her2 <- her2[!is.na(her2$cN),]
+model <- multinom(HER2.status ~ EUR.ances_scaled + cN, data = her2)
+#get OR, p value and CI.
+result.2 <-as.data.frame(tidy(model,exponentiate=T, conf.int=T))
+result.2$y.level <- rep("HER2+")
+result.2 <- result.2[2,]
+colnames(result.2)[1] <- "Subtypes"
+colnames(result.2)[3] <- "OR"
+result.2$n <- rep(903)
+result.2$model <- rep("cN")
+result.2[2,] <- rep(NA)
+
+# + cN + Age
+model <- multinom(HER2.status ~ EUR.ances_scaled + Age + cN, data = her2)
+#get OR, p value and CI.
+result.4 <-as.data.frame(tidy(model,exponentiate=T, conf.int=T))
+result.4$y.level <- rep("HER2+")
+result.4 <- result.4[2,]
+colnames(result.4)[1] <- "Subtypes"
+colnames(result.4)[3] <- "OR"
+result.4$n <- rep(903)
+result.4$model <- rep("cN + Age at Dx")
+result.4[2,] <- rep(NA)
+
+# + cN + Age
+model <- multinom(HER2.status ~ EUR.ances_scaled + Age + cN + AFR.ances, data = her2)
+#get OR, p value and CI.
+result.b <-as.data.frame(tidy(model,exponentiate=T, conf.int=T))
+result.b$y.level <- rep("HER2+")
+result.b <- result.b[2,]
+colnames(result.b)[1] <- "Subtypes"
+colnames(result.b)[3] <- "OR"
+result.b$n <- rep(903)
+result.b$model <- rep("cN + Age at Dx + AFR ancestry")
+result.b[2,] <- rep(NA)
+
+# + cN + Age + Country 
+model <- multinom(HER2.status ~ EUR.ances_scaled + Country + cN + Age + AFR.ances, data = her2)
+#get OR, p value and CI.
+result.3 <-as.data.frame(tidy(model,exponentiate=T, conf.int=T))
+result.3$y.level <- rep("HER2+")
+result.3 <- result.3[2,]
+colnames(result.3)[1] <- "Subtypes"
+colnames(result.3)[3] <- "OR"
+result.3$n <- rep(903)
+result.3$model <- rep("cN + Age at Dx + AFR ancestry + Country")
+result.3[2,] <- rep(NA)
+
+res.her2 <- rbind(result.1, result.2, result.4, result.b, result.3)
+
+write.xlsx(res.her2, file = "HER2_multinomial_country_EUR.xlsx") #save results for EUR ancestry by HER2 status
+```
+
+By IHC subtypes
+same procedure as above for IHC subtypes instead of HER2 status
+```{r}
+ihc <- df
+ihc$IHC <- factor(ihc$IHC, levels = c("HR(+)HER2(-)","HR(+)HER2(+)","HR(-)HER2(+)","HR(-)HER2(-)"))
+ihc <- ihc[!is.na(ihc$IHC),]
+
+#Univariate
+model <- multinom(IHC ~ EUR.ances_scaled, data = ihc)
+#get OR, p value and CI.
+result.1 <-as.data.frame(tidy(model,exponentiate=T, conf.int=T))
+result.1 <- subset(result.1, term != "(Intercept)")
+colnames(result.1)[1] <- "Subtypes"
+colnames(result.1)[3] <- "OR"
+result.1$n <- rep(911)
+result.1$model <- rep("Univariate")
+result.1[5,] <- rep(NA)
+
+ihc <- ihc[!is.na(ihc$cN),]
+model <- multinom(IHC ~ EUR.ances_scaled + cN, data = ihc)
+#get OR, p value and CI.
+result.2 <-as.data.frame(tidy(model,exponentiate=T, conf.int=T))
+result.2 <- subset(result.2, term == "EUR.ances_scaled")
+colnames(result.2)[1] <- "Subtypes"
+colnames(result.2)[3] <- "OR"
+result.2$n <- rep(895)
+result.2$model <- rep("cN")
+result.2[5,] <- rep(NA)
+
+model <- multinom(IHC ~ EUR.ances_scaled + Age + cN, data = ihc)
+#get OR, p value and CI.
+result.4 <-as.data.frame(tidy(model,exponentiate=T, conf.int=T))
+result.4 <- subset(result.4, term == "EUR.ances_scaled")
+colnames(result.4)[1] <- "Subtypes"
+colnames(result.4)[3] <- "OR"
+result.4$n <- rep(895)
+result.4$model <- rep("cN + Age")
+result.4[5,] <- rep(NA)
+
+model <- multinom(IHC ~ EUR.ances_scaled + Age + cN + AFR.ances, data = ihc)
+#get OR, p value and CI.
+result.b <-as.data.frame(tidy(model,exponentiate=T, conf.int=T))
+result.b <- subset(result.b, term == "EUR.ances_scaled")
+colnames(result.b)[1] <- "Subtypes"
+colnames(result.b)[3] <- "OR"
+result.b$n <- rep(895)
+result.b$model <- rep("cN + Age + AFR ancestry")
+result.b[5,] <- rep(NA)
+
+model <- multinom(IHC ~ EUR.ances_scaled + Country + cN+ Age + AFR.ances, data = ihc)
+#get OR, p value and CI.
+result.3 <-as.data.frame(tidy(model,exponentiate=T, conf.int=T))
+result.3 <- subset(result.3, term == "EUR.ances_scaled")
+colnames(result.3)[1] <- "Subtypes"
+colnames(result.3)[3] <- "OR"
+result.3$n <- rep(895)
+result.3$model <- rep("cN + Age at Dx + AFR ancestry + Country")
+result.3[5,] <- rep(NA)
+
+res.ihc <- rbind(result.1, result.2, result.4, result.b, result.3)
+
+write.xlsx(res.ihc, file = "IHC_multinomial_country_EUR.xlsx") #save results for EUR ancestry by IHC subtypes
+```
+
+By PAM50 subtypes
+same procedure as above for PAM50 subtypes
+```{r}
+pam50 <- df
+pam50 <- subset(pam50, PAM50 != "Normal")
+pam50$PAM50 <- factor(pam50$PAM50, levels = c("LumA","LumB","Her2","Basal"))
+
+#Univariate
+model <- multinom(PAM50 ~ EUR.ances_scaled, data = pam50)
+#get OR, p value and CI.
+result.1 <-as.data.frame(tidy(model,exponentiate=T, conf.int=T))
+result.1 <- subset(result.1, term != "(Intercept)")
+colnames(result.1)[1] <- "Subtypes"
+colnames(result.1)[3] <- "OR"
+result.1$n <- rep(827)
+result.1$model <- rep("Univariate")
+result.1[4,] <- rep(NA)
+
+pam50 <- pam50[!is.na(pam50$cN),]
+model <- multinom(PAM50 ~ EUR.ances_scaled + cN, data = pam50)
+#get OR, p value and CI.
+result.2 <-as.data.frame(tidy(model,exponentiate=T, conf.int=T))
+result.2 <- subset(result.2, term == "EUR.ances_scaled")
+colnames(result.2)[1] <- "Subtypes"
+colnames(result.2)[3] <- "OR"
+result.2$n <- rep(810)
+result.2$model <- rep("cN")
+result.2[4,] <- rep(NA)
+
+model <- multinom(PAM50 ~ EUR.ances_scaled + Age + cN, data = pam50)
+#get OR, p value and CI.
+result.4 <-as.data.frame(tidy(model,exponentiate=T, conf.int=T))
+result.4 <- subset(result.4, term == "EUR.ances_scaled")
+colnames(result.4)[1] <- "Subtypes"
+colnames(result.4)[3] <- "OR"
+result.4$n <- rep(810)
+result.4$model <- rep("cN + Age")
+result.4[4,] <- rep(NA)
+
+model <- multinom(PAM50 ~ EUR.ances_scaled + Age + cN + AFR.ances, data = pam50)
+#get OR, p value and CI.
+result.b <-as.data.frame(tidy(model,exponentiate=T, conf.int=T))
+result.b <- subset(result.b, term == "EUR.ances_scaled")
+colnames(result.b)[1] <- "Subtypes"
+colnames(result.b)[3] <- "OR"
+result.b$n <- rep(810)
+result.b$model <- rep("cN + Age + AFR ancestry")
+result.b[4,] <- rep(NA)
+
+model <- multinom(PAM50 ~ EUR.ances_scaled + Country + cN + Age + AFR.ances, data = pam50)
+#get OR, p value and CI.
+result.3 <-as.data.frame(tidy(model,exponentiate=T, conf.int=T))
+result.3 <- subset(result.3, term == "EUR.ances_scaled")
+colnames(result.3)[1] <- "Subtypes"
+colnames(result.3)[3] <- "OR"
+result.3$n <- rep(810)
+result.3$model <- rep("cN + Age at Dx + AFR ancestry + Country")
+result.3[4,] <- rep(NA)
+
+res.pam50 <- rbind(result.1, result.2, result.4, result.b, result.3)
+
+write.xlsx(res.pam50, file = "PAM50_multinomial_country_EUR.xlsx") #save results for EUR ancestry by PAM50 subtypes
+```
+
+-----------------------------
+FOR INDIGENOUS ANCESTRY (IA)
+-----------------------------
+By HER2 status
+```{r}
+her2 <- df
+her2$HER2.status <- factor(her2$HER2.status, levels = c("Negative","Positive"))
+her2 <- her2[!is.na(her2$HER2.status),]
+
+#Univariate
+model <- multinom(HER2.status ~ IA.ances_scaled, data = her2)
+#get OR, p value and CI.
+result.1 <-as.data.frame(tidy(model,exponentiate=T, conf.int=T))
+result.1$y.level <- rep("HER2+")
+result.1 <- subset(result.1, term != "(Intercept)")
+colnames(result.1)[1] <- "Subtypes"
+colnames(result.1)[3] <- "OR"
+result.1$n <- rep(919)
+result.1$model <- rep("Univariate")
+result.1[2,] <- rep(NA)
+
+# + nodal status (cN)
+her2 <- her2[!is.na(her2$cN),]
+model <- multinom(HER2.status ~ IA.ances_scaled + cN, data = her2)
+#get OR, p value and CI.
+result.2 <-as.data.frame(tidy(model,exponentiate=T, conf.int=T))
+result.2$y.level <- rep("HER2+")
+result.2 <- result.2[2,]
+colnames(result.2)[1] <- "Subtypes"
+colnames(result.2)[3] <- "OR"
+result.2$n <- rep(903)
+result.2$model <- rep("cN")
+result.2[2,] <- rep(NA)
+
+# + cN + Age
+model <- multinom(HER2.status ~ IA.ances_scaled + Age + cN, data = her2)
+#get OR, p value and CI.
+result.4 <-as.data.frame(tidy(model,exponentiate=T, conf.int=T))
+result.4$y.level <- rep("HER2+")
+result.4 <- result.4[2,]
+colnames(result.4)[1] <- "Subtypes"
+colnames(result.4)[3] <- "OR"
+result.4$n <- rep(903)
+result.4$model <- rep("cN + Age at Dx")
+result.4[2,] <- rep(NA)
+
+# + cN + Age
+model <- multinom(HER2.status ~ IA.ances_scaled + Age + cN + AFR.ances, data = her2)
+#get OR, p value and CI.
+result.b <-as.data.frame(tidy(model,exponentiate=T, conf.int=T))
+result.b$y.level <- rep("HER2+")
+result.b <- result.b[2,]
+colnames(result.b)[1] <- "Subtypes"
+colnames(result.b)[3] <- "OR"
+result.b$n <- rep(903)
+result.b$model <- rep("cN + Age at Dx + AFR ancestry")
+result.b[2,] <- rep(NA)
+
+# + cN + Age + Country 
+model <- multinom(HER2.status ~ IA.ances_scaled + Country + cN + Age + AFR.ances, data = her2)
+#get OR, p value and CI.
+result.3 <-as.data.frame(tidy(model,exponentiate=T, conf.int=T))
+result.3$y.level <- rep("HER2+")
+result.3 <- result.3[2,]
+colnames(result.3)[1] <- "Subtypes"
+colnames(result.3)[3] <- "OR"
+result.3$n <- rep(903)
+result.3$model <- rep("cN + Age at Dx + AFR ancestry + Country")
+result.3[2,] <- rep(NA)
+
+res.her2 <- rbind(result.1, result.2, result.4, result.b, result.3)
+
+write.xlsx(res.her2, file = "HER2_multinomial_country_IA.xlsx") #save results for IA ancestry by HER2 status
+```
+
+By IHC subtypes
+same procedure as above for IHC subtypes instead of HER2 status
+```{r}
+ihc <- df
+ihc$IHC <- factor(ihc$IHC, levels = c("HR(+)HER2(-)","HR(+)HER2(+)","HR(-)HER2(+)","HR(-)HER2(-)"))
+ihc <- ihc[!is.na(ihc$IHC),]
+
+#Univariate
+model <- multinom(IHC ~ IA.ances_scaled, data = ihc)
+#get OR, p value and CI.
+result.1 <-as.data.frame(tidy(model,exponentiate=T, conf.int=T))
+result.1 <- subset(result.1, term != "(Intercept)")
+colnames(result.1)[1] <- "Subtypes"
+colnames(result.1)[3] <- "OR"
+result.1$n <- rep(911)
+result.1$model <- rep("Univariate")
+result.1[5,] <- rep(NA)
+
+ihc <- ihc[!is.na(ihc$cN),]
+model <- multinom(IHC ~ IA.ances_scaled + cN, data = ihc)
+#get OR, p value and CI.
+result.2 <-as.data.frame(tidy(model,exponentiate=T, conf.int=T))
+result.2 <- subset(result.2, term == "IA.ances_scaled")
+colnames(result.2)[1] <- "Subtypes"
+colnames(result.2)[3] <- "OR"
+result.2$n <- rep(895)
+result.2$model <- rep("cN")
+result.2[5,] <- rep(NA)
+
+model <- multinom(IHC ~ IA.ances_scaled + Age + cN, data = ihc)
+#get OR, p value and CI.
+result.4 <-as.data.frame(tidy(model,exponentiate=T, conf.int=T))
+result.4 <- subset(result.4, term == "IA.ances_scaled")
+colnames(result.4)[1] <- "Subtypes"
+colnames(result.4)[3] <- "OR"
+result.4$n <- rep(895)
+result.4$model <- rep("cN + Age")
+result.4[5,] <- rep(NA)
+
+model <- multinom(IHC ~ IA.ances_scaled + Age + cN + AFR.ances, data = ihc)
+#get OR, p value and CI.
+result.b <-as.data.frame(tidy(model,exponentiate=T, conf.int=T))
+result.b <- subset(result.b, term == "IA.ances_scaled")
+colnames(result.b)[1] <- "Subtypes"
+colnames(result.b)[3] <- "OR"
+result.b$n <- rep(895)
+result.b$model <- rep("cN + Age + AFR ancestry")
+result.b[5,] <- rep(NA)
+
+model <- multinom(IHC ~ IA.ances_scaled + Country + cN+ Age + AFR.ances, data = ihc)
+#get OR, p value and CI.
+result.3 <-as.data.frame(tidy(model,exponentiate=T, conf.int=T))
+result.3 <- subset(result.3, term == "IA.ances_scaled")
+colnames(result.3)[1] <- "Subtypes"
+colnames(result.3)[3] <- "OR"
+result.3$n <- rep(895)
+result.3$model <- rep("cN + Age at Dx + AFR ancestry + Country")
+result.3[5,] <- rep(NA)
+
+res.ihc <- rbind(result.1, result.2, result.4, result.b, result.3)
+
+write.xlsx(res.ihc, file = "IHC_multinomial_country_IA.xlsx") #save results for IA ancestry by IHC subtypes
+```
+
+By PAM50 subtypes
+same procedure as above for PAM50 subtypes
+```{r}
+pam50 <- df
+pam50 <- subset(pam50, PAM50 != "Normal")
+pam50$PAM50 <- factor(pam50$PAM50, levels = c("LumA","LumB","Her2","Basal"))
+
+#Univariate
+model <- multinom(PAM50 ~ IA.ances_scaled, data = pam50)
+#get OR, p value and CI.
+result.1 <-as.data.frame(tidy(model,exponentiate=T, conf.int=T))
+result.1 <- subset(result.1, term != "(Intercept)")
+colnames(result.1)[1] <- "Subtypes"
+colnames(result.1)[3] <- "OR"
+result.1$n <- rep(827)
+result.1$model <- rep("Univariate")
+result.1[4,] <- rep(NA)
+
+pam50 <- pam50[!is.na(pam50$cN),]
+model <- multinom(PAM50 ~ IA.ances_scaled + cN, data = pam50)
+#get OR, p value and CI.
+result.2 <-as.data.frame(tidy(model,exponentiate=T, conf.int=T))
+result.2 <- subset(result.2, term == "IA.ances_scaled")
+colnames(result.2)[1] <- "Subtypes"
+colnames(result.2)[3] <- "OR"
+result.2$n <- rep(810)
+result.2$model <- rep("cN")
+result.2[4,] <- rep(NA)
+
+model <- multinom(PAM50 ~ IA.ances_scaled + Age + cN, data = pam50)
+#get OR, p value and CI.
+result.4 <-as.data.frame(tidy(model,exponentiate=T, conf.int=T))
+result.4 <- subset(result.4, term == "IA.ances_scaled")
+colnames(result.4)[1] <- "Subtypes"
+colnames(result.4)[3] <- "OR"
+result.4$n <- rep(810)
+result.4$model <- rep("cN + Age")
+result.4[4,] <- rep(NA)
+
+model <- multinom(PAM50 ~ IA.ances_scaled + Age + cN + AFR.ances, data = pam50)
+#get OR, p value and CI.
+result.b <-as.data.frame(tidy(model,exponentiate=T, conf.int=T))
+result.b <- subset(result.b, term == "IA.ances_scaled")
+colnames(result.b)[1] <- "Subtypes"
+colnames(result.b)[3] <- "OR"
+result.b$n <- rep(810)
+result.b$model <- rep("cN + Age + AFR ancestry")
+result.b[4,] <- rep(NA)
+
+model <- multinom(PAM50 ~ IA.ances_scaled + Country + cN + Age + AFR.ances, data = pam50)
+#get OR, p value and CI.
+result.3 <-as.data.frame(tidy(model,exponentiate=T, conf.int=T))
+result.3 <- subset(result.3, term == "IA.ances_scaled")
+colnames(result.3)[1] <- "Subtypes"
+colnames(result.3)[3] <- "OR"
+result.3$n <- rep(810)
+result.3$model <- rep("cN + Age at Dx + AFR ancestry + Country")
+result.3[4,] <- rep(NA)
+
+res.pam50 <- rbind(result.1, result.2, result.4, result.b, result.3)
+
+write.xlsx(res.pam50, file = "PAM50_multinomial_country_IA.xlsx") #save results for IA ancestry by PAM50 subtypes
+```
+
+
+
+
