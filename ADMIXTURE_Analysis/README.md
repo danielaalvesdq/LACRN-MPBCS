@@ -1,13 +1,3 @@
----
-title : 200915 US-LACRN Pipeline v3
-permalink : /200915_US-LACRN_Pipeline_v3/
----
-
-Pipeline developed by Cristian Yáñez, Bioinformatics Engineer.
-ChileGenomico Laboratory , Faculty of Medicine, University of Chile.
-
-09/20/15
-
 1. Verify data information, present and missing samples
 2. Data quality control
    Infinium II MEGA arrays in samples
@@ -3080,3 +3070,6 @@ BIM variant identifiers
 ## References
 
 <https://genome.sph.umich.edu/wiki/IMPUTE2:_1000_Genomes_Imputation_Cookbook>
+
+Pipeline developed by Cristian Yáñez, Bioinformatics Engineer.
+ChileGenomico Laboratory , Faculty of Medicine, University of Chile.
