@@ -1,3 +1,5 @@
+# Steps
+
 1. Verify data information, present and missing samples
 2. Data quality control
    Infinium II MEGA arrays in samples
