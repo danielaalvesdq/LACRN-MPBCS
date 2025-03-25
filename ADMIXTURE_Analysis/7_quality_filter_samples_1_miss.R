@@ -1,0 +1,5 @@
+imiss_sample_proyect <- read.table( "data_processing/7_quality_filters_samples/LACRN_samples-missing.imiss", header = T  )
+png( paste("results/7_quality_filters_samples/Hist_missing_data_sample.png" , sep = ""), height=500, width=600)
+hist(imiss_sample_proyect$F_MISS, main =  "Histogram of rate of missing data per sample", xlab = "Missing data rate per sample", xlim = c(0,0.2), breaks = 50)
+dev.off()
+print("results/7_quality_filters_samples/Hist_missing_data_sample.png")
